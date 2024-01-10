@@ -10,13 +10,13 @@ function viewAllDepartments(){
     })
 }
 
-// function viewAllRoles(){
-//     const sql = 'SELECT * FROM role';
-//     db.query(sql,(err, rows)=>{
-//         if(err) throw err;
-//         console.log(rows);
-//     })
-// }
+function viewAllRoles(){
+    const sql = 'SELECT * FROM role';
+    db.query(sql,(err, rows)=>{
+        if(err) throw err;
+        console.log(rows);
+    })
+}
 
 // function addAdepartment(){
 //     inquirer
