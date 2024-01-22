@@ -37,6 +37,66 @@ function viewEmployees() {
   });
 }
 
+function addEmployee() {
+  const roleSql = "SELECT id, title FROM role";
+  const employeeSql = "SELECT id, CONCAT(first_name, ' ', last_name) AS full_name FROM employee";
+
+  // Fetch roles and employees
+  db.query(roleSql, (err, roleRows) => {
+    if (err) throw err;
+
+    const roles = roleRows.map(({ id, title }) => ({
+      name: title,
+      value: id,
+    }));
+
+    db.query(employeeSql, (err, employeeRows) => {
+      if (err) throw err;
+
+      const employees = employeeRows.map(({ id, full_name }) => ({
+        name: full_name,
+        value: id,
+      }));
+
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            message: "Enter the first name of the employee:",
+            name: "first_name",
+          },
+          {
+            type: "input",
+            message: "Enter the last name of the employee:",
+            name: "last_name",
+          },
+          {
+            type: "list",
+            message: "Select the role for the employee:",
+            name: "role_id",
+            choices: roles,
+          },
+          {
+            type: "list",
+            message: "Select the manager for the employee (optional):",
+            name: "manager_id",
+            choices: [...employees, { name: "None", value: null }], // Include an option for no manager
+          },
+        ])
+        .then((employee) => {
+          const sql =
+            "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+          db.query(sql, [employee.first_name, employee.last_name, employee.role_id, employee.manager_id], (err, rows) => {
+            if (err) throw err;
+            console.log("Employee added successfully!");
+            init();
+          });
+        });
+    });
+  });
+}
+
+
 function updateEmployeeRole() {
   const sql = "SELECT id, first_name, last_name FROM employee";
   db.query(sql, (err, rows) => {
@@ -184,7 +244,7 @@ const db = mysql.createConnection(
     // MySQL username,
     user: "root",
     // TODO: Add MySQL password here
-    password: "",
+    password: "1234",
     database: "employer_db",
   },
   console.log(`Connected to the employer_db database.`)
