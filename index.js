@@ -1,4 +1,3 @@
-// const fs = require ('fs');
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
 require("console.table");
@@ -13,8 +12,6 @@ function viewAllDepartments() {
 }
 
 function viewAllRoles() {
-  // WHEN I choose to view all roles
-  // THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
   const sql =
     "SELECT role.title, role.id, department.name  departmentName, role.salary FROM role LEFT JOIN department ON role.department_id = department.id;";
   db.query(sql, (err, rows) => {
@@ -24,12 +21,9 @@ function viewAllRoles() {
   });
 }
 
-
-
 function viewEmployees() {
-  const sql = " SELECT employee.id AS employee_id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name  FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id;"
-  ;
-
+  const sql =
+    " SELECT employee.id AS employee_id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department_name, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name  FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id;";
   db.query(sql, (err, rows) => {
     if (err) throw err;
     console.table(rows);
@@ -39,9 +33,9 @@ function viewEmployees() {
 
 function addEmployee() {
   const roleSql = "SELECT id, title FROM role";
-  const employeeSql = "SELECT id, CONCAT(first_name, ' ', last_name) AS full_name FROM employee";
+  const employeeSql =
+    "SELECT id, CONCAT(first_name, ' ', last_name) AS full_name FROM employee";
 
-  // Fetch roles and employees
   db.query(roleSql, (err, roleRows) => {
     if (err) throw err;
 
@@ -86,16 +80,24 @@ function addEmployee() {
         .then((employee) => {
           const sql =
             "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
-          db.query(sql, [employee.first_name, employee.last_name, employee.role_id, employee.manager_id], (err, rows) => {
-            if (err) throw err;
-            console.log("Employee added successfully!");
-            init();
-          });
+          db.query(
+            sql,
+            [
+              employee.first_name,
+              employee.last_name,
+              employee.role_id,
+              employee.manager_id,
+            ],
+            (err, rows) => {
+              if (err) throw err;
+              console.log("Employee added successfully!");
+              init();
+            }
+          );
         });
     });
   });
 }
-
 
 function updateEmployeeRole() {
   const sql = "SELECT id, first_name, last_name FROM employee";
@@ -132,8 +134,7 @@ function updateEmployeeRole() {
           },
         ])
         .then((answers) => {
-          const sql =
-            "UPDATE employee SET role_id = ? WHERE id = ?";
+          const sql = "UPDATE employee SET role_id = ? WHERE id = ?";
           db.query(sql, [answers.role_id, answers.employee_id], (err, rows) => {
             if (err) throw err;
             console.log("Employee role updated successfully!");
@@ -163,50 +164,48 @@ function addDepartment() {
 }
 
 function addRole() {
+  const sql = "SELECT * FROM department";
+  db.query(sql, (err, rows) => {
+    if (err) throw err;
 
-    const sql = "SELECT * FROM department";
-    db.query(sql, (err, rows) => {
-      if (err) throw err;
+    const departments = rows.map(({ id, name }) => ({
+      name: name,
+      value: id,
+    }));
 
-      const departments = rows.map(({id, name})=> ({
-        name: name, 
-        value: id
-      }))
-      
-      
-      inquirer
-        .prompt([
-          {
-            type: "input",
-            message: "what's the name of the role you want to add?",
-            name: "roleName",
-          },
-          {
-            type: "input",
-            message: "what is the salary for this role?",
-            name: "salary",
-          },
-          {
-            type: "list",
-            message: "what department is this role in?",
-            name: "departmentName",
-            choices: departments
-            
-          },
-        ])     
-        .then((role) => {
-         
-    
-            const sql =
-              "INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?)";
-            db.query(sql, [role.roleName, role.salary, role.departmentName], (err, rows) => {
-              if (err) throw err;
-              console.log("Successfully added to role");
-              init()
-            });
-          
-        });
-    });
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          message: "what's the name of the role you want to add?",
+          name: "roleName",
+        },
+        {
+          type: "input",
+          message: "what is the salary for this role?",
+          name: "salary",
+        },
+        {
+          type: "list",
+          message: "what department is this role in?",
+          name: "departmentName",
+          choices: departments,
+        },
+      ])
+      .then((role) => {
+        const sql =
+          "INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?)";
+        db.query(
+          sql,
+          [role.roleName, role.salary, role.departmentName],
+          (err, rows) => {
+            if (err) throw err;
+            console.log("Successfully added to role");
+            init();
+          }
+        );
+      });
+  });
 }
 
 function action(a) {
